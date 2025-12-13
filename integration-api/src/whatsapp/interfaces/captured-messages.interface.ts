@@ -9,4 +9,5 @@ export interface CapturedMessage {
     message_type: string;
     has_media: boolean;
     language_hint: string | null;
+    source: string;
 }

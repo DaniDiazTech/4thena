@@ -186,7 +186,8 @@ export class WhatsappService implements OnModuleDestroy {
                 is_bussiness_account: message.from?.server === 'c.us' ? false : true,
                 message_type: message.type || 'unknown',
                 has_media: message.hasMedia || !!message.thumbnail || false,
-                language_hint: message.language_hint || null
+                language_hint: message.language_hint || null,
+                source: "Whatsapp"
             };
         });
     }
