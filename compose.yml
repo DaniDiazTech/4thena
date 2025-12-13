@@ -1,0 +1,34 @@
+networks:
+  4thena-network:
+
+volumes:
+  milvus-db-data:
+
+services:
+  milvus-db:
+    image: milvusdb/milvus:v2.6.7
+    restart: unless-stopped
+    container_name: milvus-db
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - 19530:19530
+      - 9091:9091
+      - 2379:2379
+    environment:
+      - ETCD_USE_EMBED=true
+      - ETCD_DATA_DIR=/var/lib/milvus/etcd
+      - ETCD_CONFIG_PATH=/milvus/configs/embedEtcd.yaml
+      - COMMON_STORAGETYPE=local
+      - DEPLOY_MODE=STANDALONE
+    volumes:
+      - milvus-db-data:/var/lib/milvus
+    networks:
+      - 4thena-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9091/healthz" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 90s
+    command: milvus run standalone
