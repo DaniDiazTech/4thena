@@ -1,33 +1,51 @@
 import os
-import google.generativeai as genai
 from typing import List
 from dotenv import load_dotenv
+import google.generativeai as genai
+
 
 load_dotenv()
 
-class EmbeddingsService:
-    def __init__(self):
-        try:
-            api_key = os.getenv('GEMINI_API_KEY')
-            if not api_key:
-                print("WARNING: GEMINI_API_KEY not found in environment variables")
-            else:
-                genai.configure(api_key=api_key)
-        except Exception as e:
-            print(f"Error configuring Gemini API: {e}")
 
-    def create_embedding(self, text: str) -> List[float]:
+class EmbeddingsService:
+    def __init__(self, apiKey: str | None = None):
         """
-        Creates an embedding for the given text using the 'models/text-embedding-004' model.
+        Initializes the embedding service with an explicit API key.
+        Fails fast if the API key is missing.
         """
-        try:
-            result = genai.embed_content(
-                model="models/text-embedding-004",
-                content=text,
-                task_type="retrieval_document",
-                title="Embedding of single string"
+        self.apiKey = apiKey or os.getenv("GEMINI_API_KEY")
+
+        if not self.apiKey:
+            raise RuntimeError(
+                "GEMINI_API_KEY is not set. "
+                "Provide it explicitly or define it as an environment variable."
             )
-            return result['embedding']
+
+        # Stateless client (no global configuration)
+        self.client = genai.Client(api_key=self.apiKey)
+
+    def createEmbedding(self, text: str) -> List[float]:
+        """
+        Generates an embedding for the given text using Gemini embeddings.
+
+        :param text: Input text to embed
+        :return: Embedding vector
+        :raises ValueError: if text is empty
+        :raises RuntimeError: if the embedding API fails
+        """
+        if not text or not text.strip():
+            raise ValueError("Input text must be a non-empty string.")
+
+        try:
+            response = self.client.embed_content(
+                model="models/text-embedding-001",
+                content=text,
+                task_type="retrieval_document"
+            )
         except Exception as e:
-            print(f"Error generating embedding: {e}")
-            return []
+            raise RuntimeError("Failed to generate embedding.") from e
+
+        if not response or "embedding" not in response:
+            raise RuntimeError("Embedding response is malformed or empty.")
+
+        return response["embedding"]
