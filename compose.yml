@@ -7,28 +7,48 @@ volumes:
 services:
   milvus-db:
     image: milvusdb/milvus:v2.6.7
-    restart: unless-stopped
     container_name: milvus-db
+    command: milvus run standalone
     security_opt:
       - seccomp:unconfined
-    ports:
-      - 19530:19530
-      - 9091:9091
-      - 2379:2379
     environment:
       - ETCD_USE_EMBED=true
       - ETCD_DATA_DIR=/var/lib/milvus/etcd
-      - ETCD_CONFIG_PATH=/milvus/configs/embedEtcd.yaml
       - COMMON_STORAGETYPE=local
-      - DEPLOY_MODE=STANDALONE
     volumes:
       - milvus-db-data:/var/lib/milvus
-    networks:
-      - 4thena-network
+    ports:
+      - "19530:19530"  # Milvus gRPC port (main API)
+      - "9091:9091"    # Metrics/health endpoint
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9091/healthz" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
       timeout: 20s
       retries: 3
       start_period: 90s
-    command: milvus run standalone
+    # restart: unless-stopped
+
+  hera-api:
+    build:
+      context: hera-api
+    ports:
+      - 8000:8000
+    networks:
+      - 4thena-network
+
+  integration-api:
+    build:
+      context: integration-api
+    ports:
+      - 9000:8000
+    networks:
+      - 4thena-network
+
+  athena-api:
+    build:
+      context: athena-api
+    ports:
+      - 7000:8000
+    networks:
+      - 4thena-network
+
