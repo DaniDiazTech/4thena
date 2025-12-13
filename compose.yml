@@ -15,6 +15,7 @@ services:
       - ETCD_USE_EMBED=true
       - ETCD_DATA_DIR=/var/lib/milvus/etcd
       - COMMON_STORAGETYPE=local
+      - DEPLOY_MODE=STANDALONE
     volumes:
       - milvus-db-data:/var/lib/milvus
     ports:
