@@ -11,5 +11,5 @@ results*
 data/
 pyrightconfig.json
 data/
-
 .env
+test_local_*.py

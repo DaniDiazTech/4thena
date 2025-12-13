@@ -8,7 +8,7 @@ services:
   milvus-db:
     image: milvusdb/milvus:v2.6.7
     container_name: milvus-db
-    command: milvus run standalone
+    restart: unless-stopped
     security_opt:
       - seccomp:unconfined
     environment:
@@ -27,7 +27,9 @@ services:
       timeout: 20s
       retries: 3
       start_period: 90s
-    restart: unless-stopped
+    networks:
+      - 4thena-network
+    command: milvus run standalone
   nats-mq:
     image: nats:2.12.2-alpine3.22
     ports:
@@ -43,7 +45,6 @@ services:
       - 8000:8000
     networks:
       - 4thena-network
-
   integration-api:
     build:
       context: integration-api
@@ -51,7 +52,6 @@ services:
       - 9000:8000
     networks:
       - 4thena-network
-
   athena-api:
     build:
       context: athena-api
