@@ -28,7 +28,14 @@ services:
       retries: 3
       start_period: 90s
     restart: unless-stopped
-
+  nats-mq:
+    image: nats:2.12.2-alpine3.22
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - 4thena-network
+    command: --http_port 8222
   hera-api:
     build:
       context: hera-api
