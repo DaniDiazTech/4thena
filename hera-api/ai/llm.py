@@ -1,3 +1,4 @@
+from typing import List
 import os
 from google import genai
 from dotenv import load_dotenv
@@ -16,7 +17,7 @@ class LLMinteractor:
         self.client = genai.Client(api_key=self.api_key)
         self.model_name = 'gemini-2.5-flash'
 
-    def generate(self, prompt: str, model: Optional[str] = None, **kwargs : Any) -> str:
+    def generate(self, prompt : List[dict], model: Optional[str] = None, **kwargs : Any) -> str:
         try:
             llm_response = self.client.models.generate_content(
                 model= model or self.model_name,
