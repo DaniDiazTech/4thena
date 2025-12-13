@@ -3,11 +3,14 @@ import nats
 from nats.errors import NoServersError
 from colorama import Fore
 
+from milvus.milvus import Milvus
+
 class NATSConsumer:
-    def __init__(self, servers: list[str], subjects: list[str]):
+    def __init__(self, servers: list[str], subjects: list[str], milvus_client: Milvus):
         self.servers = servers
         self.subjects = subjects
         self.nc = None
+        self.milvus_client = milvus_client
 
     async def connect(self):
         print(f"{Fore.GREEN}Attempting NATS connection")
@@ -33,6 +36,7 @@ class NATSConsumer:
             print(f"{Fore.GREEN}Subscribed to: {subject}")
 
     async def run(self):
+        await self.milvus_client.connect()
         await self.connect()
         await self.subscribe()
 

@@ -1,5 +1,6 @@
 milvus:
   uri: "http://milvus-db:19530"
+  collection: "identifying_msgs_collection"
 nats:
   servers: ["nats://nats-mq:4222"]
   subject: ["hera.new.msgs"]
