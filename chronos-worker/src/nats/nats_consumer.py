@@ -11,7 +11,7 @@ class NatsConsumer:
 
     async def start(self):
         await self.nats.subscribe(
-            "hera.update.msg",
+            "hera.predit.id",
             self.handle_message,
         )
 
