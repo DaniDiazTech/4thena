@@ -7,7 +7,7 @@ class GeminiService:
     def __init__(self):
         if settings.GEMINI_API_KEY:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.model = genai.GenerativeModel("gemini-2.0-flash")
+            self.model = genai.GenerativeModel("gemini-2.0-flash", generation_config={"temperature": 0.8})
         else:
             self.model = None
 
@@ -18,7 +18,80 @@ class GeminiService:
         if not self.model:
             return self._generate_fallback_whatsapp_conversation(count)
 
-        prompt = fprompt = f"""
+        scenarios = [
+    """
+Context: General inquiries from mixed industries.
+Topics: Payment integration for Colombia/Mexico, Credit card + PSE, Risk management, Basic API questions, Pricing.
+Client Persona: Business owners and PMs from various mid-sized companies.
+Yuno Responder Personality: Colombian Stand-up Comedian (inspired by Peter Albeiro and Aurelio “Cheveroni”; style only, no exact imitation)
+- Keeps everything in English with a warm Colombian flavor; uses light, universal humor (no Spanish slang or catchphrases).
+- Playful, self-deprecating analogies for complex topics (“PSE is like the bank transfer’s express lane”).
+- Varies greetings and openings to avoid repetition; never repeats the same joke structure.
+- Punchy but helpful: jokes never replace concrete guidance (docs, next steps, timelines).
+- Avoids copying any real comedian’s signature lines; all wording must be original.
+    """,
+    """
+Context: High-growth Startups focusing on speed.
+Topics: Quick integration, Developer SDKs, Sandbox access, "Go live" timeline, Startup-friendly pricing.
+Client Persona: CTOs and Founders of new tech startups (e.g., "FoodieApp", "RideFast"). Tone is urgent and informal.
+Yuno Responder Personality: Cleopatra VII (Last Pharaoh of Egypt, 69-30 BC)
+- Responds with political savvy and strategic vision, treats integrations like alliance building.
+- Uses dramatic, charismatic language with occasional references to conquest and expansion.
+- Positions features as "forming powerful alliances" or "commanding the payment realm".
+- Flirtatious but professional, makes clients feel like the most important kingdom.
+- References building empires, securing territories (markets), and strategic dominance.
+- Signs off with royal confidence and grand promises of merchant success.
+    """,
+    """
+Context: Enterprise/Corporate clients focusing on compliance.
+Topics: PCI-DSS compliance, Security, SLAs, High availability, Dedicated support, Contract terms.
+Client Persona: IT Directors and Enterprise Architects from large firms. Tone is formal and demanding.
+Yuno Responder Personality: Marie Curie (Physicist and Chemist, 1867-1934)
+- Ruthlessly precise, data-driven, no tolerance for imprecision or vagueness.
+- Responds with scientific rigor, citing exact specifications and measurements.
+- Cold but competent, treats compliance like laboratory protocols.
+- Uses chemistry/physics analogies for security ("encryption is like radioactive decay—irreversible").
+- Dismissive of "soft" concerns, focuses purely on technical facts and certifications.
+- Signs off with clinical efficiency, sometimes barely acknowledging pleasantries.
+    """,
+    """
+Context: Technical integration details.
+Topics: Webhooks, API signatures, Idempotency, Error handling, Postman collections, Specific parameter questions.
+Client Persona: Developers and Tech Leads. Tone is technical and specific.
+Yuno Responder Personality: Leonardo da Vinci (Polymath, 1452-1519)
+- Approaches APIs as artistic and engineering masterpieces, obsessed with design elegance.
+- Asks probing questions back to understand the "whole system" like sketching anatomy.
+- References his own inventions when explaining webhooks ("like my flying machine, but for data").
+- Poetic about code architecture, sees webhooks as mechanical symphonies.
+- Sometimes goes on tangents about the beauty of REST design or JSON structure.
+- Sketches ASCII diagrams in responses, signs off with Renaissance flourish.
+    """,
+    """
+Context: Operations and Finance focus.
+Topics: Reconciliation reports, Dashboard access, Refunds, Chargebacks, Settlement timelines, Multi-currency reporting.
+Client Persona: Finance Managers and Ops Leads. Tone is focused on money flow and reporting.
+Yuno Responder Personality: Winston Churchill (Prime Minister, 1874-1965)
+- Treats financial operations like wartime strategy, dramatically urgent about cash flow.
+- Uses militaristic language: "defending against chargebacks", "conquering reconciliation challenges".
+- Motivational and bombastic, makes settlement timelines sound like D-Day operations.
+- Never surrenders to mundane finance questions, elevates them to epic struggles.
+- References historical battles when discussing dispute resolution.
+- Signs off with rousing speeches about merchant victory and financial triumph.
+    """,
+    """
+Context: Misinformation / noise stress-test thread (intentionally off-topic client).
+Topics: None required from the standard list; the client derails with bizarre conspiracy claims about payments, routing, and “hidden actors”.
+Client Persona: A single client who posts nonsensical conspiracy chatter, jumps between topics, and makes irrational demands. Messages are absurd and clearly fictional (no real-world accusations or harmful claims).
+Yuno Responder Personality: Calm Reality-Anchor (Support/Triage)
+- Stays polite and professional, does not validate conspiracies, and repeatedly redirects to concrete requirements.
+- Asks short clarifying questions (country, payment methods, volumes, timeline) and proposes actionable steps (sandbox, docs, webhooks).
+- If the client continues derailing, sets boundaries and offers to schedule a technical call with an agenda.
+    """
+]
+        
+        selected_scenario = random.choice(scenarios)
+
+        prompt = f"""
 You are generating synthetic WhatsApp chat data for testing. Create a WhatsApp conversation between potential clients and Yuno (a payment integration/orchestration company).
 
 Generate exactly {count} messages total as one continuous chat thread.
@@ -65,6 +138,8 @@ Anti-duplication and realism constraints:
 
 Now generate the JSON array with exactly {count} messages.
 """
+
+
 
 
         try:
