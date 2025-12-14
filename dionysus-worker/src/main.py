@@ -21,8 +21,8 @@ async def lifespan(app: FastAPI):
     await nats.connect()
     app.state.nats = nats
 
-    worker = MessageWorker(app.state.db, nats)
-    await worker.start()
+    consumer = NatsConsumer(nats, app.state.db)
+    await consumer.start()
 
     yield
 

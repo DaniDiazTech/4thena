@@ -111,3 +111,13 @@ services:
       - NATS_URI=${NATS_URI}
     networks:
       - 4thena-network
+
+  dionysus-worker:
+    build:
+      context: dionysus-worker
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_NAME=${MONGO_NAME}
+      - NATS_URI=${NATS_URI}
+    networks:
+      - 4thena-network

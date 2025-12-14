@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 
+from src.message.message_dto import CreateMessageDto
 from src.message.message_repository import MessageRepository
 from src.message.provider.linkedin_provider import LinkedInProvider
 from src.message.provider.whatsapp_provider import WhatsAppProvider
@@ -20,8 +21,13 @@ class MessageWorker:
         repository = MessageRepository(self.database)
 
         msg = await provider.get()
-        saved = await repository.create(msg)
-
+        # saved = await repository.create(msg)
+        saved = CreateMessageDto(
+           source=msg.source,
+           txt=msg.txt,
+            content=msg.content
+        )
+        
         await self.nats.publish("hera.new.msgs", json.dumps(saved).encode())
 
     async def run(self):
