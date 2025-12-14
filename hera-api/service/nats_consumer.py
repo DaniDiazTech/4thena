@@ -57,14 +57,14 @@ class NATSConsumer:
 
         if res is None or len(res) == 0 or len(res[0]) == 0:
             print(f"{Fore.RED}Error: milvus empty or couldn't query")
-            await self.nats_producer.publish("{'msg_id': '"+json_data['id']+"', 'merchant_id': 'NAN'}")
+            await self.nats_producer.publish("{\"msg_id\": \""+json_data['id']+"\", \"merchant_id\": \"NAN\"}")
             return
 
         merchant_id_list = [m.merchant_id for m in res[0]]  # type: ignore
 
         if not merchant_id_list:
             print(f"{Fore.GREEN}Vector DB is empty")
-            await self.nats_producer.publish("{'msg_id': '"+json_data['id']+"', 'merchant_id': 'NAN'}")
+            await self.nats_producer.publish("{\"msg_id\": \""+json_data['id']+"\", \"merchant_id\": \"NAN\"}")
             return
 
         merchant_id_list = np.array(merchant_id_list)

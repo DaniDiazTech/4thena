@@ -24,10 +24,17 @@ def updateMessageMerchantId(merchant_id: str, msg_id: str):
 
     messages_col = db["messages"]
 
-    messages_col.update_one(
+
+    doc = messages_col.find_one({"_id": ObjectId(msg_id)})
+    print("iSOISNOINSONOSNOI")
+    print(doc)
+    print("iSOISNOINSONOSNOI")
+    result = messages_col.update_one(
         {"_id": ObjectId(msg_id)},
         {"$set": {"merchant_id": merchant_id}},
     )
+
+    print(result)
 
 def getQueryMsgs(msg_ids: List[str]):
     db = get_db()

@@ -117,7 +117,7 @@ services:
       context: dionysus-api
     environment:
       - MONGO_URI=${MONGO_URI}
-      - MONGO_NAME=${MONGO_NAME}
+      - MONGO_DB_NAME=${MONGO_NAME}
       - NATS_URI=${NATS_URI}
     networks:
       - 4thena-network
