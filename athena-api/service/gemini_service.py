@@ -93,13 +93,13 @@ async def process_message(prompt_msg: str, context: str, merchant_id: str):
             full_context += "\n"+msg
         full_context = full_context.strip()
 
-        full_context += "\n"+prompt_msg
+        full_context += "\n--- GIVEN THE PREVIOUS INFORMATION ANSWER THE FOLLOWING PROMPT ---"+prompt_msg
         full_context = full_context.strip()
 
         print(f"{Fore.BLUE} Generating full response with rag retrieval")
         response = client.models.generate_content(
             model=prompt_model_name,
-            contents=prompts.REDUCE_PROMPT+"\n"+prompt_msg
+            contents=full_context
         )
 
         return {"response": response.text}

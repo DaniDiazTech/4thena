@@ -13,7 +13,7 @@ ___
 ├── athena_backend_requests
 ├── hephaestus-api
 ├── hera-api
-├── cronos-api
+├── chronos-worker
 ├── hermes-api
 └── integration-api
 ```
