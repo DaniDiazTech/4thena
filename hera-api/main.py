@@ -40,7 +40,6 @@ async def main():
     llm = LLMinteractor(gemini_api_key)
     embeddings_service = EmbeddingsService(gemini_api_key)
 
-    summarizer = Summarizer(llm)
     merchant_id_identifier = MerchantIDIdentifier(llm, embeddings_service)
 
     milvus_config = CONFIG["milvus"]
@@ -50,7 +49,7 @@ async def main():
     servers = nats_config.get('servers', ["nats://localhost:4222"])
     subject = nats_config.get('subject', ["hera.new.msgs"])
 
-    consumer = NATSConsumer(servers, subject, milvus_client, summarizer, merchant_id_identifier)
+    consumer = NATSConsumer(servers, subject, milvus_client, merchant_id_identifier)
     await consumer.run()
 
 if __name__ == "__main__":

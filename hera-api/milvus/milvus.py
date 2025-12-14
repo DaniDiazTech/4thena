@@ -29,8 +29,23 @@ class Milvus:
                 metric_type="COSINE"
             )
             print(f"{Fore.GREEN}Milvus collection {self.collection} created successfully")
+            index_params = self.client.prepare_index_params()
+            index_params.add_index(
+                field_name="vector",
+                index_type="IVF_SQ8",
+                metric_type="COSINE",
+                params={"nlist":1024}
+            )
+            self.client.create_index(
+                collection_name=self.collection,
+                index_params=index_params
+            )
         else:
             print(f"{Fore.GREEN}Milvus collection {self.collection} already exists")
+
+        self.client.load_collection(
+            collection_name=self.collection
+        )
 
     async def insert(self, vector: List[float], merchant_id: str, msg_id: str) -> None:
         if self.client is None:
@@ -61,9 +76,11 @@ class Milvus:
 
         res = self.client.search(
             collection_name=self.collection,
-            data=vector,
+            anns_field="vector",
+            data=[vector],
             limit=5,
-            output_fields=["id", "merchant_id", "msg_id"]
+            output_fields=["id", "merchant_id", "msg_id"],
+            search_params={"metric_type": "COSINE"}
         )
 
         return res
