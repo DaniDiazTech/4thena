@@ -5,6 +5,9 @@ volumes:
   milvus-db-data:
 
 services:
+  # ---
+  # Services
+  # ---
   milvus-db:
     image: milvusdb/milvus:v2.6.7
     container_name: milvus-db
@@ -19,8 +22,8 @@ services:
     volumes:
       - milvus-db-data:/var/lib/milvus
     ports:
-      - "19530:19530"  # Milvus gRPC port (main API)
-      - "9091:9091"    # Metrics/health endpoint
+      - "19530:19530" # Milvus gRPC port (main API)
+      - "9091:9091" # Metrics/health endpoint
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
@@ -38,33 +41,73 @@ services:
     networks:
       - 4thena-network
     command: --http_port 8222
+  # ---
+  # Apps
+  # ---
   hera-api:
-    env_file: hera-api/.env
     build:
       context: hera-api
-    ports:
-      - 8000:8000
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - 4thena-network
+
   hermes-api:
-    env_file: hermes-api/.env
     build:
       context: hermes-api
-    ports:
-      - 9000:8000
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - 4thena-network
+
   athena-api:
     build:
       context: athena-api
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_NAME}
     ports:
       - 7000:8000
     networks:
       - 4thena-network
+
   apollo-api:
     build:
-      context: athena-api
+      context: apollo-api
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - TWILIO_API_KEY=${TWILIO_API_KEY}
+      - TWILIO_API_SECRET=${TWILIO_API_SECRET}
+      - TWILIO_APP_SID=${TWILIO_APP_SID}
+      - NGROK_URL=${NGROK_URL}
+      - MEETING_BAAS_API_KEY=${MEETING_BAAS_API_KEY}
     ports:
       - 4000:8000
+    networks:
+      - 4thena-network
+
+  hephaestus-api:
+    build:
+      context: hephaestus-api
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_NAME=${MONGO_NAME}
+      - NATS_URI=${NATS_URI}
+    ports:
+      - 9000:9000
+    networks:
+      - 4thena-network
+
+  chronos-worker:
+    build:
+      context: chronos-worker
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_NAME=${MONGO_NAME}
+      - NATS_URI=${NATS_URI}
     networks:
       - 4thena-network
