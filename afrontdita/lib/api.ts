@@ -1,6 +1,6 @@
 export async function getMerchants(): Promise<string[]> {
     try {
-        const response = await fetch('http://localhost:7000/merchants', {
+        const response = await fetch('http://localhost:8000/merchants', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -26,7 +26,7 @@ export async function getMerchants(): Promise<string[]> {
 
 export async function sendQuery(merchantId: string, message: string, context: string): Promise<string> {
     try {
-        const response = await fetch('http://127.0.0.1:7000/query', {
+        const response = await fetch('http://127.0.0.1:8000/query', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -47,5 +47,65 @@ export async function sendQuery(merchantId: string, message: string, context: st
     } catch (error) {
         console.error('Error sending query:', error)
         return "I'm sorry, I couldn't process your request at the moment."
+    }
+}
+
+export interface MessageContent {
+    from: string;
+    from_name: string;
+    to: string;
+    to_name: string;
+    is_yuno_response: boolean;
+}
+
+export interface UnverifiedMessage {
+    source: string;
+    txt: string; // This maps to content in UI
+    ratified: boolean;
+    content: MessageContent;
+    id: string;
+    merchant_id?: string; // Assumed field based on requirements
+}
+
+export async function getUnverifiedMessages(): Promise<UnverifiedMessage[]> {
+    try {
+        const response = await fetch('http://localhost:9000/messages/list', {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch unverified messages')
+        }
+
+        const data = await response.json()
+        return data
+    } catch (error) {
+        console.error('Error fetching unverified messages:', error)
+        return []
+    }
+}
+
+export async function ratifyMessage(messageId: string, merchantId: string): Promise<void> {
+    try {
+        const response = await fetch('http://localhost:9000/messages/ratify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message_id: messageId,
+                merchant_id: merchantId,
+            }),
+        })
+
+        if (!response.ok) {
+            throw new Error('Failed to ratify message')
+        }
+    } catch (error) {
+        console.error('Error ratifying message:', error)
+        throw error
     }
 }

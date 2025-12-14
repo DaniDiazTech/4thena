@@ -1,50 +1,51 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, X, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { CorrectMerchantDialog } from "@/components/correct-merchant-dialog"
+import { getUnverifiedMessages, ratifyMessage, UnverifiedMessage as ApiMessage } from "@/lib/api"
 
-interface UnverifiedMessage {
+interface UIMessage {
     id: string
     content: string
     inferredMerchant: string
     timestamp: string
+    merchant_id?: string
 }
 
-const MOCK_MESSAGES: UnverifiedMessage[] = [
-    {
-        id: "1",
-        content: "Payment of $45.00 to AMZN MKTPLACE WA received on 12/12/2023. Reference #928392.",
-        inferredMerchant: "Amazon",
-        timestamp: "2 mins ago",
-    },
-    {
-        id: "2",
-        content: "Uber Trip help.uber.com CA Dec 11. Your trip receipt.",
-        inferredMerchant: "Uber Eats",
-        timestamp: "15 mins ago",
-    },
-    {
-        id: "3",
-        content:
-            "TST* SBUX - 800 - 1234. Coffee purchase. This is a very long message content designed to test the collapsible functionality of the card component. It should show a show less or show more button depending on the state of the card. Let's add even more text to ensure it wraps multiple lines.",
-        inferredMerchant: "Starbucks",
-        timestamp: "1 hour ago",
-    },
-]
-
 export function UnverifiedMessageList() {
-    const [messages, setMessages] = useState<UnverifiedMessage[]>(MOCK_MESSAGES)
+    const [messages, setMessages] = useState<UIMessage[]>([])
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
     const [removingId, setRemovingId] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     // Dialog State
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [selectedMessage, setSelectedMessage] = useState<UnverifiedMessage | null>(null)
+    const [selectedMessage, setSelectedMessage] = useState<UIMessage | null>(null)
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            setIsLoading(true)
+            const apiMessages = await getUnverifiedMessages()
+            const uiMessages: UIMessage[] = apiMessages.map((msg) => ({
+                id: msg.id,
+                content: msg.txt,
+                // Use merchant_id as inferredMerchant, fallback to Unknown if missing
+                inferredMerchant: msg.merchant_id || "Unknown",
+                merchant_id: msg.merchant_id,
+                // API doesn't provide timestamp, so we mock it or leave it generic
+                timestamp: "Just now",
+            }))
+            setMessages(uiMessages)
+            setIsLoading(false)
+        }
+
+        fetchMessages()
+    }, [])
 
     const toggleExpand = (id: string) => {
         const newExpanded = new Set(expandedIds)
@@ -65,24 +66,42 @@ export function UnverifiedMessageList() {
         }, 300) // Match CSS transition duration
     }
 
-    const handleRatify = async (id: string) => {
-        // Call mock API
-        console.log(`Ratifying message ${id}`)
-        removeMessage(id)
+    const handleRatify = async (message: UIMessage) => {
+        try {
+            await ratifyMessage(message.id, message.merchant_id || "")
+            console.log(`Ratified message ${message.id} with merchant ${message.merchant_id}`)
+            removeMessage(message.id)
+        } catch (error) {
+            console.error("Failed to ratify message", error)
+            // Optionally handle error in UI (toast etc)
+        }
     }
 
-    const handleCorrect = (message: UnverifiedMessage) => {
+    const handleCorrect = (message: UIMessage) => {
         setSelectedMessage(message)
         setIsDialogOpen(true)
     }
 
-    const handleConfirmCorrection = (validMerchant: string) => {
+    const handleConfirmCorrection = async (validMerchant: string) => {
         if (selectedMessage) {
-            console.log(`Correcting message ${selectedMessage.id} to ${validMerchant}`)
-            setIsDialogOpen(false)
-            setSelectedMessage(null)
-            removeMessage(selectedMessage.id)
+            try {
+                console.log(`Correcting message ${selectedMessage.id} to ${validMerchant}`)
+                await ratifyMessage(selectedMessage.id, validMerchant)
+                setIsDialogOpen(false)
+                setSelectedMessage(null)
+                removeMessage(selectedMessage.id)
+            } catch (error) {
+                console.error("Failed to correct message", error)
+            }
         }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="text-center py-12">
+                <p className="text-muted-foreground">Loading messages...</p>
+            </div>
+        )
     }
 
     if (messages.length === 0) {
@@ -151,7 +170,7 @@ export function UnverifiedMessageList() {
                                                 variant="default"
                                                 size="icon"
                                                 className="h-8 w-8 bg-green-600 hover:bg-green-700 text-white shadow-sm"
-                                                onClick={() => handleRatify(message.id)}
+                                                onClick={() => handleRatify(message)}
                                                 title="Ratify (Correct)"
                                             >
                                                 <Check className="h-4 w-4" />
