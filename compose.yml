@@ -46,7 +46,8 @@ services:
       - 8000:8000
     networks:
       - 4thena-network
-  integration-api:
+  hermes-api:
+    env_file: hermes-api/.env
     build:
       context: integration-api
     ports:
@@ -60,4 +61,10 @@ services:
       - 7000:8000
     networks:
       - 4thena-network
-
+  apollo-api:
+    build:
+      context: athena-api
+    ports:
+      - 4000:8000
+    networks:
+      - 4thena-network
