@@ -53,7 +53,7 @@ async def process_message(prompt_msg: str, context: str, merchant_id: str):
     if not milvus_client:
         return {"error": "Milvus client can't connect"}
 
-    prompt_model_name = CONFIG.get('gemini', {}).get('model', 'gemini-2.5-flash')
+    prompt_model_name = CONFIG.get('gemini', {}).get('model', 'gemini-3-pro')
     embed_model_name = CONFIG.get('gemini', {}).get('embed_model', 'text-embedding-004')
     
     try:

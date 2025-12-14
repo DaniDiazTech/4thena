@@ -1,6 +1,6 @@
 gemini:
   embed_model: "gemini-embedding-001"
-  model: "gemini-2.5-flash"
+  model: "gemini-3-pro"
   max_output_tokens: 2048
   temperature: 0.9
   top_p: 1
