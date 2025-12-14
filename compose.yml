@@ -68,7 +68,7 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_DB_NAME=${MONGO_NAME}
     ports:
-      - 7000:8000
+      - 8000:8000
     networks:
       - 4thena-network
 
@@ -98,7 +98,7 @@ services:
       - MONGO_NAME=${MONGO_NAME}
       - NATS_URI=${NATS_URI}
     ports:
-      - 9000:9000
+      - 9000:8000
     networks:
       - 4thena-network
 
