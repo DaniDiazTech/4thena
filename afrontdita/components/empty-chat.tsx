@@ -10,11 +10,6 @@ interface EmptyChatProps {
 export function EmptyChat({ merchantName }: EmptyChatProps) {
   const suggestions = [
     {
-      icon: TrendingUp,
-      title: "Transaction Analysis",
-      description: "Analyze transaction patterns and trends",
-    },
-    {
       icon: DollarSign,
       title: "Revenue Insights",
       description: "Get insights on revenue and volume",
