@@ -8,6 +8,7 @@ import traceback
 from ai.llm import LLMinteractor
 from milvus.milvus import Milvus
 from service.merchant_id_identifier import MerchantIDIdentifier
+from nats import NatsProducer
 
 import numpy as np
 
@@ -19,12 +20,14 @@ class NATSConsumer:
         subjects: list[str],
         milvus_client: Milvus,
         merchant_id_identifier: MerchantIDIdentifier,
+        nats_producer: NatsProducer
     ):
         self.servers = servers
         self.subjects = subjects
         self.nc = None
         self.milvus_client = milvus_client
         self.merchant_id_identifier = merchant_id_identifier
+        self.nats_producer = nats_producer
 
         self.queue: asyncio.Queue = asyncio.Queue()
 
@@ -52,12 +55,14 @@ class NATSConsumer:
 
         if res is None or len(res) == 0 or len(res[0]) == 0:
             print(f"{Fore.RED}Error: milvus empty or couldn't query")
+            self.nats_producer.publish("NAN")
             return
 
         merchant_id_list = [m.merchant_id for m in res[0]]  # type: ignore
 
         if not merchant_id_list:
             print(f"{Fore.GREEN}Vector DB is empty")
+            self.nats_producer.publish("NAN")
             return
 
         merchant_id_list = np.array(merchant_id_list)
@@ -65,6 +70,9 @@ class NATSConsumer:
         mode = values[counts.argmax()]
 
         print(f"{Fore.GREEN}The predicted merchant id is: {mode}")
+
+        self.nats_producer.publish(str(mode))
+        return
 
     async def worker(self):
         while True:
@@ -89,6 +97,7 @@ class NATSConsumer:
 
     async def run(self):
         await self.milvus_client.connect()
+        await self.nats_producer.connect()
         await self.connect()
         await self.subscribe()
 

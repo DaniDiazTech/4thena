@@ -5,13 +5,12 @@ from dotenv import load_dotenv
 import os
 
 from manager.load_config import CONFIG
-from service import merchant_id_identifier
 from service.nats_consumer import NATSConsumer
 from milvus.milvus import Milvus
 from service.merchant_id_identifier import MerchantIDIdentifier
-from service.summarizer import Summarizer
 from ai.embeddings import EmbeddingsService
 from ai.llm import LLMinteractor
+from nats.producer import NatsProducer
 
 load_dotenv()
 
@@ -49,7 +48,12 @@ async def main():
     servers = nats_config.get('servers', ["nats://localhost:4222"])
     subject = nats_config.get('subject', ["hera.new.msgs"])
 
-    consumer = NATSConsumer(servers, subject, milvus_client, merchant_id_identifier)
+    producer_server = nats_config.get('servers', ["nats://localhost:4222"])[0]
+    producer_subject = nats_config.get("producer_subject", "her.predict.id")
+
+    nats_producer = NatsProducer(producer_server, producer_subject)
+
+    consumer = NATSConsumer(servers, subject, milvus_client, merchant_id_identifier, nats_producer)
     await consumer.run()
 
 if __name__ == "__main__":
