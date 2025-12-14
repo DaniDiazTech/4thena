@@ -11,13 +11,13 @@ class NatsConsumer:
 
     async def start(self):
         await self.nats.subscribe(
-            "hera.predit.id",
+            "hera.predict.id",
             self.handle_message,
         )
 
     async def handle_message(self, msg):
         payload = json.loads(msg.data.decode())
-
+        print(f'Received payload: {payload}')
         await self.repo.set_merchant_id(
             message_id=payload["msg_id"],
             merchant_id=payload["merchant_id"],
