@@ -1,26 +1,29 @@
-export async function getMerchants(): Promise<string[]> {
+export async function openContract(merchantId: string, message: string, context: string): Promise<string> {
     try {
-        const response = await fetch('http://localhost:8000/merchants', {
+        const response = await fetch('http://127.0.0.1:8000/contract', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            // If the API expects a body, we can add it here.
-            // Based on "retrieves a list of merchants", it might not need one,
-            // but usually POST implies some payload or action.
-            // Since no payload was specified, we'll send an empty object or nothing.
-            // We'll trust the user's instruction that it's a simple retrieval via POST.
+            body: JSON.stringify({
+                merchant_id: merchantId,
+            }),
         })
+      
+        console.log(response)
 
         if (!response.ok) {
-            throw new Error('Failed to fetch merchants')
+            throw new Error('Failed to fetch query response')
         }
 
-        const data = await response.json()
-        return data
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+
+        window.open(url, '_blank')
+
     } catch (error) {
-        console.error('Error fetching merchants:', error)
-        return []
+        console.error('Error sending query:', error)
+        return "I'm sorry, I couldn't process your request at the moment."
     }
 }
 
@@ -50,6 +53,8 @@ export async function sendQuery(merchantId: string, message: string, context: st
     }
 }
 
+
+
 export interface MessageContent {
     from: string;
     from_name: string;
@@ -65,6 +70,32 @@ export interface UnverifiedMessage {
     content: MessageContent;
     id: string;
     merchant_id?: string; // Assumed field based on requirements
+}
+
+export async function getMerchants(): Promise<string[]> {
+    try {
+        const response = await fetch('http://localhost:8000/merchants', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // If the API expects a body, we can add it here.
+            // Based on "retrieves a list of merchants", it might not need one,
+            // but usually POST implies some payload or action.
+            // Since no payload was specified, we'll send an empty object or nothing.
+            // We'll trust the user's instruction that it's a simple retrieval via POST.
+        })
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch merchants')
+        }
+
+        const data = await response.json()
+        return data
+    } catch (error) {
+        console.error('Error fetching merchants:', error)
+        return []
+    }
 }
 
 export async function getUnverifiedMessages(): Promise<UnverifiedMessage[]> {
@@ -90,7 +121,7 @@ export async function getUnverifiedMessages(): Promise<UnverifiedMessage[]> {
 
 export async function ratifyMessage(messageId: string, merchantId: string): Promise<void> {
     try {
-        const response = await fetch('http://localhost:9000/message/ratify', {
+        const response = await fetch('http://localhost:9000/messages/ratify', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

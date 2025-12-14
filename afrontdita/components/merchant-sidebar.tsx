@@ -2,11 +2,45 @@
 
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import * as React from "react"
+
+
+import { openContract } from "@/lib/api"
 
 interface MerchantSidebarProps {
   merchantName: string
   isOpen: boolean
   onClose: () => void
+}
+
+type DownloadContractButtonProps = {
+    merchantId: string
+}
+
+export function DownloadContractButton({
+    merchantId,
+}: DownloadContractButtonProps) {
+    const [loading, setLoading] = React.useState(false)
+
+    const handleClick = async () => {
+        try {
+            setLoading(true)
+            await openContract(merchantId)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <Button
+            type="button"
+            onClick={handleClick}
+            disabled={loading}
+            variant="default"
+        >
+            {loading ? "Generating…" : "Download"}
+        </Button>
+    )
 }
 
 export function MerchantSidebar({ merchantName, isOpen, onClose }: MerchantSidebarProps) {
@@ -40,6 +74,9 @@ export function MerchantSidebar({ merchantName, isOpen, onClose }: MerchantSideb
               {getInitial(merchantName)}
             </div>
             <h3 className="font-bold text-xl text-sidebar-foreground">{merchantName}</h3>
+
+            <DownloadContractButton merchantId={merchantName}></DownloadContractButton>
+
           </div>
         </div>
       </div>
