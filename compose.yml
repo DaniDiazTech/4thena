@@ -39,6 +39,7 @@ services:
       - 4thena-network
     command: --http_port 8222
   hera-api:
+    env_file: hera-api/.env
     build:
       context: hera-api
     ports:
