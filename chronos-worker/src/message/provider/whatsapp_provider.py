@@ -12,7 +12,7 @@ class WhatsAppProvider(MessageProvider):
     """
     async def get(self) -> CreateMessageDto:
         r = requests.get(
-            'http://localhost:4000/whatsapp/messages?count=1',
+            'http://apollo-api:8000/whatsapp/messages?count=1',
             timeout=10
         )
         r.raise_for_status()

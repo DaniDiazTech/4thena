@@ -11,7 +11,7 @@ class LinkedInProvider(MessageProvider):
     """
     async def get(self) -> CreateMessageDto:
         r = requests.get(
-            'http://localhost:4000/linkedin/messages?count=1',
+            'http://apollo-api:8000/linkedin/messages?count=1',
             timeout=10
         )
         r.raise_for_status()
