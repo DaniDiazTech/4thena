@@ -18,32 +18,54 @@ class GeminiService:
         if not self.model:
             return self._generate_fallback_whatsapp_conversation(count)
 
-        prompt = f"""Generate a WhatsApp conversation between potential clients and Yuno (a payment integration company).
-        
-Generate {count} messages total. Mix of client inquiries AND Yuno responses. About 60% should be client messages, 40% should be Yuno responses.
+        prompt = fprompt = f"""
+You are generating synthetic WhatsApp chat data for testing. Create a WhatsApp conversation between potential clients and Yuno (a payment integration/orchestration company).
 
-Topics to cover:
+Generate exactly {count} messages total as one continuous chat thread.
+Message mix: ~60% client messages (is_yuno=false) and ~40% Yuno responses (is_yuno=true). Ensure the final counts match as closely as possible (difference of at most 1 from the 60/40 split).
+
+Topics (must all appear at least once across the dataset, and none should dominate more than ~30% of messages):
 - Payment integration for Colombia and Mexico
-- Credit card processing, PSE (Colombian bank transfers)
-- Risk management and fraud prevention
-- API capabilities, webhooks, sandbox environment
-- Pricing and implementation timelines
+- Credit card processing + PSE (Colombian bank transfers)
+- Risk management + fraud prevention
+- API capabilities: webhooks + sandbox environment
+- Pricing + implementation timelines
 
-Return ONLY a valid JSON array with this exact format:
-[
-  {{"text": "message content", "is_yuno": false}},
-  {{"text": "response from Yuno", "is_yuno": true}}
-]
+Output format:
+Return ONLY a valid JSON array. Each element must be exactly:
+{{"text": "message content", "is_yuno": true|false}}
+No extra keys. No markdown. No commentary. No trailing commas.
 
-Rules:
-- All messages MUST be in English
-- Casual but professional WhatsApp tone
-- Client messages should include their company name (use fictional names like TechFlow, PayMaster, QuickBuy, NovaPay)
-- Yuno responses should be helpful and friendly
-- Do NOT use placeholders like [Name] or bracketed text
-- Make it feel like a real WhatsApp chat thread
+Language and tone rules:
+- All messages MUST be in English.
+- WhatsApp-style: casual but professional, short and natural (typically 1–2 sentences, aim for < 200 characters unless necessary).
+- No placeholders like [Name], <NAME>, or bracketed text.
 
-Only return the JSON array, nothing else."""
+Client-message rules (is_yuno=false):
+- Every client message must include a fictional company name inline (not as metadata).
+- Use a LARGE and varied pool of company names (e.g., TechFlow, PayMaster, QuickBuy, NovaPay, AndesCart, CloudKiosk, RutaMarket, PixelRetail, CobrePay, SelvaTravel, MonoEats, BrightSub, TerraShop, QuantaPOS, LlamaLogistics, MarlinTickets).
+- Avoid repetition: do not use the same client company name in more than 2 messages total unless {count} > 60 (then max 3).
+- Vary the speaker style: some messages are direct questions, some provide context (volumes, launch date, current PSP pain), some ask for docs, some ask for a call.
+
+Yuno-message rules (is_yuno=true):
+- Vary Yuno responders to avoid a single “voice”. Rotate names and roles naturally inside the message (no extra fields), e.g.:
+  - “Ana from Yuno (Solutions Engineer)”
+  - “Mateo at Yuno (Implementation)”
+  - “Sofia from Yuno (Partnerships)”
+  - “Daniel at Yuno (Support)”
+Use each Yuno name at most 2 times (unless {count} > 60, then max 3).
+- Do not start responses with the same greeting repeatedly. Across all Yuno messages, do not reuse an identical opening (first 3 words) more than once.
+- Be helpful and specific but not overly long: propose next steps (sandbox, API docs, webhooks), ask clarifying questions (countries, payment methods, volumes), mention typical timelines at a high level, and keep pricing responses realistic (e.g., “depends on volume and methods; we can share a proposal”).
+
+Anti-duplication and realism constraints:
+- No two messages may be identical.
+- Avoid repeating the same sentence template (e.g., “Hi, we are X and want Y”) more than twice across the entire dataset.
+- Maintain conversational continuity: client questions should usually be followed soon by a relevant Yuno answer, but allow occasional client follow-ups.
+- Do not mention the same provider brand (Stripe/Adyen/etc.) in more than 2 messages total (and it’s okay to mention none).
+
+Now generate the JSON array with exactly {count} messages.
+"""
+
 
         try:
             response = self.model.generate_content(prompt)
