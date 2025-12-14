@@ -2,10 +2,12 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search } from "lucide-react"
+import { Search, Box } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { MerchantCard } from "@/components/merchant-card"
 import { Logo } from "@/components/logo"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface SearchPageProps {
   merchants: string[]
@@ -28,21 +30,29 @@ export function SearchPage({ merchants, onMerchantSelect }: SearchPageProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
-          <Logo />
-          <h1 className="text-xl font-semibold text-foreground">4tena</h1>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Logo />
+            <h1 className="text-xl font-semibold text-foreground">4tena</h1>
+          </div>
+          <Link href="/unverified-messages">
+            <Button variant="ghost" size="icon" aria-label="Unverified Messages">
+              <Box className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </Link>
         </div>
       </header>
+      .
 
       {/* Main Content */}
       <div className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-12 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-balance">
-            Financial Intelligence at Your Fingertips
+            The Merchant Memory you need
           </h2>
           <p className="text-lg text-muted-foreground text-balance max-w-2xl mx-auto">
-            Search for merchants and get AI-powered insights.
+            Get AI-powered memories and insights from conversations with merchants.
           </p>
         </div>
 
