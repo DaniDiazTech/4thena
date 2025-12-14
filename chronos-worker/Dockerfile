@@ -3,7 +3,10 @@ FROM python:${PYTHON_VERSION} AS base
 
 WORKDIR /app
 
-ARG PORT=8000
-EXPOSE ${PORT}
+COPY . .
 
-CMD [ "scripts/start.sh" ]
+RUN pip install -r requirements.txt --no-cache-dir
+
+EXPOSE 8000
+
+CMD [ "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000" ]
