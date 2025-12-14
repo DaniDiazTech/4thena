@@ -44,6 +44,14 @@ services:
   # ---
   # Apps
   # ---
+  afrontdita:
+    build:
+      context: afrontdita
+    ports:
+      - 3000:3000
+    networks:
+      - 4thena-network
+
   hera-api:
     build:
       context: hera-api
