@@ -10,6 +10,8 @@ import { GetMessagesDto } from './dto';
 import { CapturedMessage } from './interfaces';
 import { Message, MessageDocument } from './schemas/message.schema';
 
+import { existsSync } from 'fs';
+
 @Injectable()
 export class WhatsappService implements OnModuleDestroy {
     private readonly logger: Logger;
@@ -23,12 +25,34 @@ export class WhatsappService implements OnModuleDestroy {
         @InjectModel(Message.name) private messageModel: Model<MessageDocument>
     ) {
         this.logger = new Logger(WhatsappService.name);
+
+        let executablePath = process.env.CHROME_BIN || process.env.PUPPETEER_EXECUTABLE_PATH;
+
+        if (!executablePath) {
+            try {
+                const bundledPath = puppeteer.executablePath();
+                if (existsSync(bundledPath)) {
+                    executablePath = bundledPath;
+                } else {
+                    this.logger.warn(`Puppeteer executable not found at ${bundledPath}. Will try system default.`);
+                }
+            } catch (error) {
+                this.logger.warn('Failed to resolve puppeteer executable path', error);
+            }
+        }
+
+        const puppeteerConfig: any = {
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+            headless: true,
+        };
+
+        if (executablePath) {
+            puppeteerConfig.executablePath = executablePath;
+        }
+
         this.client = new Client({
             authStrategy: new LocalAuth(),
-            puppeteer: {
-                executablePath: puppeteer.executablePath(),
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-            }
+            puppeteer: puppeteerConfig
         });
     }
 
