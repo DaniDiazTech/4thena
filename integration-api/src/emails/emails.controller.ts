@@ -7,6 +7,11 @@ export class EmailsController {
 
     @Get('read')
     async leerCorreos(@Query('domain') domain: string) {
-        return await this.emailService.obtenerUltimosCorreos(domain);
+        return await this.emailService.getLatestEmails(domain);
+    }
+
+    @Get("domain")
+    async getDomain(@Query('domain') domain: string) {
+        return this.emailService.getLatestEmails(domain);
     }
 }

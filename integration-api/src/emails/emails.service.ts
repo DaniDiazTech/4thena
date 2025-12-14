@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ImapFlow } from 'imapflow';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { ConfigService } from '@nestjs/config';
+import { MessageService } from 'src/message/message.service';
 
 @Injectable()
 export class EmailsService {
-    constructor(private configService: ConfigService) { }
+    constructor(private configService: ConfigService, private messageService: MessageService) { }
 
-    async obtenerUltimosCorreos(domain?: string) {
+    async getLatestEmails(domain?: string) {
         const client = new ImapFlow({
             host: 'imap.gmail.com',
             port: 993,
@@ -31,19 +32,9 @@ export class EmailsService {
         try {
             const searchCriteria: any = {};
 
-            // If domain is provided, filter by sender
             if (domain) {
                 searchCriteria.from = domain;
-            } else {
-                // If no domain, fetch all (or maybe limit to recent ones if we wanted, but request says 'read emails i read')
-                // '1:*' means all messages. ImapFlow fetch accepts sequence string or search object.
-                // If we pass an empty object, it might not work as 'all'. 
-                // Let's use '1:*' as default sequence if no search criteria is needed.
             }
-
-            // We default to '1:*' if no domain, otherwise use the search object.
-            // But fetch signature is fetch(range, options). behavior differs.
-            // Actually, if we want to include seen emails, we just DON'T filter by {seen:false}.
 
             let fetchRange: any = '1:*';
             if (Object.keys(searchCriteria).length > 0) {
@@ -61,6 +52,7 @@ export class EmailsService {
                     adjuntos: emailParseado.attachments?.length || 0
                 });
             }
+            await this.messageService.sendMessage({ content: correosProcesados });
         } finally {
             lock.release();
         }

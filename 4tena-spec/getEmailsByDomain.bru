@@ -1,0 +1,15 @@
+meta {
+  name: getEmailsByDomain
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:3000/emails/read
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

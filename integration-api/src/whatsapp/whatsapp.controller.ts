@@ -30,4 +30,6 @@ export class WhatsappController {
     async getSavedMessages() {
         return this.whatsappService.getAllMessages();
     }
+
 }
+
