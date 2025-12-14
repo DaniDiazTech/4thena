@@ -54,8 +54,8 @@ class NATSConsumer:
 
         print(json_data)
 
-        await self.milvus_client.insertIdentify(identify_vector, json_data["merchant_id"], json_data["_id"])
-        await self.milvus_client.insertRag(rag_vector, json_data["merchant_id"], json_data["_id"])
+        await self.milvus_client.insertIdentify(identify_vector, json_data["merchant_id"], json_data["id"])
+        await self.milvus_client.insertRag(rag_vector, json_data["merchant_id"], json_data["id"])
 
     async def worker(self):
         while True:

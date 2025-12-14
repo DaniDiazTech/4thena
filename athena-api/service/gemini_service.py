@@ -3,6 +3,12 @@ import os
 from colorama import Fore
 from manager.load_config import CONFIG
 
+import pypandoc
+import tempfile
+
+from fastapi import BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse
+
 from prompts import prompts
 from . import mongo_service 
 from milvus.milvus import Milvus
@@ -81,12 +87,8 @@ async def process_message(prompt_msg: str, context: str, merchant_id: str):
         if search_res is None:
             return {"error": "Milvus client can't query"}
 
-        msg_ids = []
-        for res in search_res:
-            msg_ids.append(res.msg_id)
-
-        print(f"{Fore.BLUE}Search result messages ids {msg_ids}")
-        msgs = mongo_service.getQueryMsgs(msg_ids)
+        print(f"{Fore.BLUE}Search result messages ids {search_res}")
+        msgs = mongo_service.getQueryMsgs(search_res)
         
         full_context = ""
         for msg in msgs:
@@ -95,6 +97,10 @@ async def process_message(prompt_msg: str, context: str, merchant_id: str):
 
         full_context += "\n--- GIVEN THE PREVIOUS INFORMATION ANSWER THE FOLLOWING PROMPT ---"+prompt_msg+"\n--- THE FOLLOWING IS THE MERCHANT NAME ---\n"+merchant_id
         full_context = full_context.strip()
+
+        print("-"*10)
+        print(full_context)
+        print("-"*10)
 
         print(f"{Fore.BLUE} Generating full response with rag retrieval")
         response = client.models.generate_content(
@@ -106,3 +112,60 @@ async def process_message(prompt_msg: str, context: str, merchant_id: str):
     except Exception as e:
         print(f"Error in Gemini processing: {e}")
         raise e
+
+async def buildContract(background_tasks: BackgroundTasks, merchant_id: str):
+    print(f"{Fore.BLUE}Retrieving gemini client")
+    client = get_client()
+    if not client:
+        return {"error": "Gemini API Key missing"}
+
+    prompt_model_name = CONFIG.get('gemini', {}).get('model', 'gemini-3-pro-preview')
+    
+    try:
+        print("Getting business messgaes")
+        docs = mongo_service.getContractMessages(merchant_id)
+        
+        print("Generating prompt")
+        full_context = prompts.CONTRACT_PROMPT
+        for d in docs:
+            full_context += "\n"+d
+        full_context = full_context.strip()
+
+
+        print("Generating llm response")
+        response = client.models.generate_content(
+            model=prompt_model_name,
+            contents=full_context
+        )
+
+        txt = response.text
+
+        if txt is None:
+            raise HTTPException(status_code=500, detail="couldn't pdf")
+
+        print("Creating temporary file to write to")
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            pdf_path = tmp.name
+
+        print("Writing to file")
+        pypandoc.convert_text(
+            txt,
+            to="pdf",
+            format="md",
+            outputfile=pdf_path,
+            extra_args=["--standalone"]
+        )
+
+        print("initiating backgounrd task to remove leftover file")
+        background_tasks.add_task(os.remove, pdf_path)
+
+        print("returning file to endpoint")
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename="company_report.pdf"
+        )
+    except Exception as e:
+        print(f"Error in Gemini processing: {e}")
+        raise e
+    

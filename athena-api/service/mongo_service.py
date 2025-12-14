@@ -1,5 +1,6 @@
 from typing import List
 from pymongo import MongoClient
+from bson import ObjectId
 import os
 from colorama import Fore
 from manager.load_config import CONFIG
@@ -23,7 +24,7 @@ def getQueryMsgs(msg_ids: List[str]):
 
     print(f"{Fore.BLUE}Querying messages table")
     messages_col = db["messages"]
-    messages_cursor = messages_col.find({"_id": {"$in": msg_ids}})
+    messages_cursor = messages_col.find({"_id": {"$in": [ObjectId(mid) for mid in msg_ids]}})
 
     full_msgs_txt = []
     for doc in messages_cursor:
@@ -35,25 +36,30 @@ def getQueryMsgs(msg_ids: List[str]):
         
 
 def getContractMessages(merchant_id: str):
+    print("getting database")
     db = get_db()
     
-    collection_name = f"merchant_{merchant_id}"
+    collection_name = f"{merchant_id}"
     
+    print("verifying collection exists")
     if collection_name not in db.list_collection_names():
         db.create_collection(collection_name)
         print(f"{Fore.GREEN}Created collection: {collection_name}")
     
     merchant_col = db[collection_name]
     
+    print("finding all msgs in merchant")
     cursor = merchant_col.find({}, {"msg_id": 1, "_id": 0})
     msg_ids = [doc['msg_id'] for doc in cursor if 'msg_id' in doc]
     
     messages_col = db["messages"]
     
+    print("iterating over messages to extract them")
     results = []
     if msg_ids:
-        messages_cursor = messages_col.find({"msg_id": {"$in": msg_ids}})
-        results = list(messages_cursor)
+        messages_cursor = messages_col.find({"msg_id": {"$in": [ObjectId(mid) for mid in msg_ids]}})
+        for msg in messages_cursor:
+            results.append(msg["txt"])
         
     print("\n--- CONTRACT MESSAGES ---")
     for res in results:
