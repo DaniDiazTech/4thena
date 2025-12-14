@@ -5,9 +5,9 @@ from ai.prompts import ID_REQUEST
 from ai.llm import LLMinteractor
 
 class MerchantIDIdentifier:
-    def __init__(self):
-        self.embeddings_service = EmbeddingsService()
-        self.llm = LLMinteractor()
+    def __init__(self, llm: LLMinteractor, embeddings_service: EmbeddingsService):
+        self.embeddings_service = embeddings_service
+        self.llm = llm
 
     def identifyMerchantId(self, content: List[dict] | str) -> str:
         send_content = [{"role": "model", "parts": [{"text": ID_REQUEST}]}]
@@ -19,5 +19,5 @@ class MerchantIDIdentifier:
 
         return self.llm.generate(send_content)
 
-    def identifyMerchantIdEmbedding(self, content: List[dict] | str) -> str:
+    def identifyMerchantIdEmbedding(self, content: List[dict] | str) -> List[float]:
         return self.embeddings_service.createEmbedding(self.identifyMerchantId(content))

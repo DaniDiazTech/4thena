@@ -4,8 +4,8 @@ from ai.embeddings import EmbeddingsService
 from ai.prompts import SUMMARY_PROMPT
 
 class Summarizer:
-    def __init__(self):
-        self.llm = LLMinteractor()
+    def __init__(self, llm: LLMinteractor):
+        self.llm = llm
 
     def summarize(self, content: List[dict] | str) -> str:
 
@@ -17,6 +17,3 @@ class Summarizer:
             send_content += content
 
         return self.llm.generate(send_content)
-    
-        summary = self.summarize(content)
-        return EmbeddingsService().createEmbedding(summary)
