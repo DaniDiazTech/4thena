@@ -15,6 +15,7 @@ ___
 ├── hera-api
 ├── chronos-worker
 ├── hermes-api
+├── dionysus-api
 └── tartarus-api
 ```
 
@@ -44,23 +45,13 @@ Cronos titan of time recieves information from Apollo and carefully controls it'
 #### Tartarus
 A dark god we don't talk about. To behold his code is to risk insanity. To open his files is to delve into regret.
 
-### Backend Services
+#### Dionysus
+The god of irony and fun. A last ditch attempt at a hail marry.
 
-#### Python Services (AI & Logic)
-*   **hera-api** (Port 8000): Likely the core RAG (Retrieval-Augmented Generation) service. It connects to:
-    *   **Milvus**: For vector storage and retrieval.
-    *   **NATS**: For asynchronous messaging.
-*   **hermes-api** (Port 9000): Associated with messaging or communication.
-*   **athena-api** (Port 7000): The "Brain" of the operation, likely handling high-level reasoning or orchestration of AI tasks.
-*   **apollo-api** (Port 4000): Another service built from the Athena context, possibly for a specific subgraph or specialized API utility.
-
-#### Node.js Services (Integration)
-*   **integration-api**: A NestJS application handling external integrations.
-    *   **Modules**: WhatsApp integration, Email processing (implied).
-    *   **Stack**: NestJS, TypeScript.
+___
 
 ### Infrastructure
-*   **Milvus**: Vector Database (v2.6.7) running on port 19530. Used for storing embeddings of merchant data/transactions.
+*   **Milvus**: Vector Database (v2.6.7) running on port 19530. Used for storing embeddings of merchant data.
 *   **NATS**: Messaging System (v2.12.2) running on ports 4222/8222. Used for inter-service communication.
 *   **Docker Compose**: Orchestrates the entire backend ecosystem (`compose.yml`).
 
@@ -84,13 +75,3 @@ A dark god we don't talk about. To behold his code is to risk insanity. To open 
     npm install
     npm run dev
     ```
-
-3.  **Start Integration API**:
-    ```bash
-    cd integration-api
-    pnpm install
-    pnpm start:dev
-    ```
-
-```
->>>>>>> d7e639f (Stashed documentation)
